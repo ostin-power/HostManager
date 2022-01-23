@@ -1,19 +1,19 @@
 # HostManager
 
-A small system that allow you to manage hosts store in you .ssh/config
+A small system that allow you to manage hosts stored in your .ssh/config file
 
 HostManager requires Python3 to run.
 
 ## Installation
 
-After cloning the repository, create the .env file in the working directory and set the environment variables.
+After cloning the repository, create .env file in the working directory and set the environment variables.
 
 ```bash
 SSH_HOSTS_PATH_FILE="path/to/your/ssh/config"
 JSON_FILE="path/to/storage/file/data.json"
 ```
 
-### Add new alias for you command
+### Add new alias for your command
 
 #### MacOS
 
