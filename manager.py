@@ -21,9 +21,6 @@ def save_data(filepath, data):
 #loading environment variables
 load_dotenv()
 
-#Hosts file
-HOSTS_FILE = os.getenv('SSH_HOSTS_PATH_FILE')
-
 #Loading data from json
 SAVED_DATA_JSON = os.getenv('JSON_FILE')
 data = load_data(SAVED_DATA_JSON)
@@ -40,15 +37,18 @@ if len(sys.argv) >= 3:
 
 if opt == "-h" or opt == "--help":
     #help command
-    print("[ usage : <command> <option> <host_alias> ]")
-    print("[\t-h\t\t# print command instructions]")
-    print("[\t-c\t\t# create ssh connection]")
-    print("[\t-d\t\t# delete saved host : <command> -d <host_alias>]")
-    print("[\t-l\t\t# list all saved hosts]")
-    print("[\t--save\t\t# save new host : <command> --save <host_alias>]")
-    print("[\t--search\t# search for specific host : <command> --search <host_alias>]")
-    print("[\t--reset\t\t# clear all stored aliases]")
-    print("[\t--import\t\t# import from ssh config all stored hosts]")
+    print()
+    print("usage : <command> <option> <host_alias>")
+    print()
+    print("\t-h --help\t# print command instructions")
+    print("\t-c\t\t# create ssh connection")
+    print("\t-d\t\t# delete saved host : <command> -d <host_alias>")
+    print("\t-l\t\t# list all saved hosts")
+    print("\t--save\t\t# save new host : <command> --save <host_alias>")
+    print("\t--search\t# search for specific host : <command> --search <host_alias>")
+    print("\t--reset\t\t# clear all stored aliases")
+    print("\t--import\t# import from ssh config all stored hosts")
+    print()
 
 elif opt == "-c":
     #connect command
@@ -56,6 +56,8 @@ elif opt == "-c":
         if alias in data:
             print("Trying to connect...")
             command = "ssh "+data[alias]["user"]+"@"+data[alias]["host"]
+            if data[alias]["port"] != 22:
+                command = command+" -p "+data[alias]["port"]
             subprocess.call(command, shell=True)
         else:
             print("Alias not found!")
@@ -80,12 +82,14 @@ elif opt == "-l":
 
 elif opt == "--save":
     if alias is not None:
-        host  = input("insert host : ")
-        user  = input("insert user : ")
+        host = input("insert host : ")
+        user = input("insert user : ")
+        port = input("insert port (leave empty if is 22 <default ssh port>) : ")
 
         temp = {}
         temp['host'] = host
         temp['user'] = user
+        temp['port'] = 22 if port == "" else port #set default ssh port
 
         data[alias] = temp
         save_data(SAVED_DATA_JSON, data)
@@ -102,13 +106,42 @@ elif opt == "--search":
         print("Alias not found")
 
 elif opt == "--reset":
-    confirm = input("Are you sure you want to reset aliases ? [Y/n]")
-    if confirm.upper() == "Y":
+    confirm = input("Are you sure you want to reset all aliases ? [Y/n] : ")
+    if confirm in ["Y", "yes"]:
         save_data(SAVED_DATA_JSON, {})
     else:
         print("Reset aborted!")
+
 elif opt == "--import":
-    print()
+    #Import from .ssh/config
+    data = {}
+    with open(os.getenv('SSH_HOSTS_PATH_FILE'), 'r') as f:
+        line = f.readline()
+        while line:
+            line = f.readline()
+            if line.startswith('Host '):
+                alias = line.split(' ')
+                alias = alias[1].replace("\n","")
+                data[alias] = {}
+            
+            if line.startswith('HostName'):
+                host = line.split(' ')
+                host = host[1].replace("\n","")
+                data[alias]['host'] = host
+
+            if line.startswith('User '):
+                user = line.split(' ')
+                user = user[1].replace("\n","")
+                data[alias]['user'] = user
+
+            if line.startswith('Port '):
+                port = line.split(' ')
+                port = port[1].replace("\n","")
+                data[alias]['port'] = port
+            
+    save_data(SAVED_DATA_JSON, data)
+    print("Import completed!")
+
 else:
     print("Command does not exists")
     print("<use -h or --help option>")
