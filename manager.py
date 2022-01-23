@@ -47,6 +47,8 @@ if opt == "-h" or opt == "--help":
     print("[\t-l\t\t# list all saved hosts]")
     print("[\t--save\t\t# save new host : <command> --save <host_alias>]")
     print("[\t--search\t# search for specific host : <command> --search <host_alias>]")
+    print("[\t--reset\t\t# clear all stored aliases]")
+    print("[\t--import\t\t# import from ssh config all stored hosts]")
 
 elif opt == "-c":
     #connect command
@@ -105,7 +107,7 @@ elif opt == "--reset":
         save_data(SAVED_DATA_JSON, {})
     else:
         print("Reset aborted!")
-elif opt == "-import":
+elif opt == "--import":
     print()
 else:
     print("Command does not exists")
