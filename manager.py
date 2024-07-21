@@ -18,6 +18,21 @@ def save_data(filepath, data):
     with open (filepath, "w") as f:
         json.dump(data, f)
 
+# Function to print colored text
+def print_colored(text, color):
+    colors = {
+        'red': '\033[91m',
+        'green': '\033[92m',
+        'yellow': '\033[93m',
+        'blue': '\033[94m',
+        'purple': '\033[95m',
+        'cyan': '\033[96m',
+        'white': '\033[97m',
+        'reset': '\033[0m',
+    }
+
+    print(f"{colors[color]}{text}{colors['reset']}")
+    
 #loading environment variables
 load_dotenv()
 
@@ -77,8 +92,14 @@ elif opt == "-d":
         print("<use -h or --help option>")
 
 elif opt == "-l":
-    #list command
-    print(json.dumps(data, indent=4))
+    # list command
+    if data:
+        print_colored("\nSaved Hosts:", 'cyan')
+        print_colored("\n{:<20} {:<20} {:<20} {:<20}".format("Alias", "User", "Host", "Port"), 'yellow')
+        for alias, d in data.items():
+            print("{:<20} {:<20} {:<20} {:<20}".format(alias, d['user'], d['host'], d['port']))
+    else:
+        print_colored("No hosts saved.", 'red')
 
 elif opt == "--save":
     if alias is not None:
@@ -89,13 +110,13 @@ elif opt == "--save":
         temp = {}
         temp['host'] = host
         temp['user'] = user
-        temp['port'] = 22 if port == "" else port #set default ssh port
+        temp['port'] = 22 if port == "" else port #set default ssh porqt
 
         data[alias] = temp
         save_data(SAVED_DATA_JSON, data)
-        print("Saved!")
+        print_colored("Saved!", 'green')
     else :
-        print("Please specify an alias")
+        print_colored("Please specify an alias", 'yellow')
         print("<use -h or --help option>")
 
 elif opt == "--search":
@@ -103,14 +124,14 @@ elif opt == "--search":
     if alias in data:
         print(json.dumps(data[alias], indent=4))
     else:
-        print("Alias not found")
+        print_colored("Alias not found", 'yellow')
 
 elif opt == "--reset":
     confirm = input("Are you sure you want to reset all aliases ? [Y/n] : ")
     if confirm in ["Y", "yes"]:
         save_data(SAVED_DATA_JSON, {})
     else:
-        print("Reset aborted!")
+        print_colored("Reset aborted!", 'yellow')
 
 elif opt == "--import":
     #Import from .ssh/config
@@ -140,8 +161,8 @@ elif opt == "--import":
                 data[alias]['port'] = port
             
     save_data(SAVED_DATA_JSON, data)
-    print("Import completed!")
+    print_colored("Import completed!", 'green')
 
 else:
-    print("Command does not exists")
+    print_colored("Command does not exists", 'red')
     print("<use -h or --help option>")
